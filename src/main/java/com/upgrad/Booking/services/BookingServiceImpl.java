@@ -29,6 +29,9 @@ public class BookingServiceImpl implements BookingService {
     @Value("${paymentServiceEndPointURL}")
     private String paymentServiceEndPointURL;
 
+    @Value("${topic-name}")
+    private  String topicName;
+
     @Autowired
     RestTemplate restTemplate;
 
@@ -126,9 +129,8 @@ public class BookingServiceImpl implements BookingService {
             fetchBooking.setTransactionId(getTransaction.getTransactionId());
         BookingInfoEntity saveBooking = bookingDao.save(fetchBooking);
         String message = "Booking confirmed for user with aadhaar number: " + saveBooking.getAadharNumber() + "    |    " + "Here are the booking details:    " + saveBooking.toString();
-        System.out.println(message);
-        kafkaConfig.publish("booking_confirmation_message", "chat", message);
-        System.out.println("message posted");
+        kafkaConfig.publish(topicName, "chat", message);
+        System.out.println("Booking Confirmation Message Posted Successfully to Kafka Topic : " + message);
         return saveBooking;
     }
 }
