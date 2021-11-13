@@ -1,5 +1,6 @@
 package com.upgrad.Booking.services;
 
+import com.sun.istack.NotNull;
 import com.upgrad.Booking.entities.BookingInfoEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -7,17 +8,18 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface BookingService {
-    public BookingInfoEntity acceptBookingDetails(BookingInfoEntity booking);
 
-    public List<BookingInfoEntity> acceptMultipleBookingDetails(List<BookingInfoEntity> bookings);
+    BookingInfoEntity acceptBookingDetails(@NotNull BookingInfoEntity booking);
 
-    public BookingInfoEntity getBookingDetails(int id);
+    List<BookingInfoEntity> acceptMultipleBookingDetails(List<BookingInfoEntity> bookings);
 
-    public BookingInfoEntity updateBookingDetails(int id , BookingInfoEntity bookings);
+    BookingInfoEntity getBookingDetails(@NotNull int id);
 
-    public boolean CancelBooking(int id);
+    BookingInfoEntity updateBookingDetails(int id, BookingInfoEntity bookings);
 
-    public List<BookingInfoEntity> getAllBooking();
+    boolean CancelBooking(int id);
 
-    public Page<BookingInfoEntity> getPaginatedBookingDeatails(Pageable pageable);
+    List<BookingInfoEntity> getAllBooking();
+
+    Page<BookingInfoEntity> getPaginatedBookingDetails(Pageable pageable);
 }

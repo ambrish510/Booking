@@ -1,4 +1,5 @@
 package com.upgrad.Booking.dto;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,11 +10,11 @@ import java.time.LocalDateTime;
 @Setter
 public class BookingDTO {
 
-    private int Id ;
+    private int Id;
 
-    private LocalDate fromDate ;
+    private LocalDate fromDate;
 
-    private LocalDate toDate ;
+    private LocalDate toDate;
 
     private String aadharNumber;
 
@@ -26,4 +27,19 @@ public class BookingDTO {
     private int transactionId;
 
     private LocalDateTime bookedOn;
+
+    @Override
+    public String toString() {
+        return "BookingDTO{" +
+                "Id=" + Id +
+                ", fromDate=" + fromDate +
+                ", toDate=" + toDate +
+                ", aadharNumber='" + aadharNumber + '\'' +
+                ", numOfRooms=" + numOfRooms +
+                ", roomNumbers='" + roomNumbers + '\'' +
+                ", roomPrice=" + roomPrice +
+                ", transactionId=" + transactionId +
+                ", bookedOn=" + bookedOn +
+                '}';
+    }
 }
