@@ -27,30 +27,30 @@ public class BookingController {
     Hotel Booking Creation
      */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BookingInfoEntity> createBooking(@RequestBody BookingDTO bookingDTO) {
+    public ResponseEntity<BookingDTO> createBooking(@RequestBody BookingDTO bookingDTO) {
         BookingInfoEntity newBooking = modelMapper.map(bookingDTO, BookingInfoEntity.class);
         BookingInfoEntity savedBooking = bookingService.acceptBookingDetails(newBooking);
         BookingDTO SavedBookingDTO = modelMapper.map(savedBooking, BookingDTO.class);
-        return new ResponseEntity(SavedBookingDTO, HttpStatus.CREATED);
+        return new ResponseEntity<>(SavedBookingDTO, HttpStatus.CREATED);
     }
 
     /*
     Make Transaction for the booking
      */
     @PostMapping(value = "/{bookingId}/transaction", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BookingInfoEntity> makePayment(@PathVariable int bookingId, @RequestBody TransactionDTO transactionDTO) {
+    public ResponseEntity<Object> makePayment(@PathVariable int bookingId, @RequestBody TransactionDTO transactionDTO) {
 
         if (transactionDTO.getPaymentMode().equalsIgnoreCase("CARD") || transactionDTO.getPaymentMode().equalsIgnoreCase("UPI")) {
             BookingInfoEntity SavedBooking = bookingService.makePayment(transactionDTO);
             BookingDTO bookingDTO = modelMapper.map(SavedBooking, BookingDTO.class);
-            return new ResponseEntity(bookingDTO, HttpStatus.CREATED);
+            return new ResponseEntity<>(bookingDTO, HttpStatus.CREATED);
 
         } else {
 
             HashMap<Object, Object> invalidPaymentMode = new HashMap<>();
             invalidPaymentMode.put("message", "Invalid mode of payment");
             invalidPaymentMode.put("statusCode", 400);
-            return new ResponseEntity(invalidPaymentMode, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(invalidPaymentMode, HttpStatus.BAD_REQUEST);
         }
     }
 }

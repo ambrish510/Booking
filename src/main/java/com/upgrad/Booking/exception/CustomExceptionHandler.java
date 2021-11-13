@@ -12,8 +12,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(RecordNotFoundException.class)
-    public final ResponseEntity<ErrorResponse> handleRecordNotFoundException(RecordNotFoundException e, WebRequest req){
-        ErrorResponse errorResponse = new ErrorResponse(e.getLocalizedMessage(),400);
-        return new ResponseEntity(errorResponse,HttpStatus.BAD_REQUEST);
-     }
+    public final ResponseEntity<ErrorResponse> handleRecordNotFoundException(RecordNotFoundException e, WebRequest req) {
+        ErrorResponse errorResponse = new ErrorResponse(e.getLocalizedMessage(), 400);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
 }
