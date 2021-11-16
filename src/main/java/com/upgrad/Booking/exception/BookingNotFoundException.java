@@ -1,10 +1,9 @@
 package com.upgrad.Booking.exception;
 
-public class RecordNotFoundException extends RuntimeException {
-
+public class BookingNotFoundException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
-    public RecordNotFoundException(String message) {
+    public BookingNotFoundException(String message) {
         super(message);
     }
 }

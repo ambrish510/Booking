@@ -3,9 +3,10 @@ package com.upgrad.Booking.services;
 import com.sun.istack.NotNull;
 import com.upgrad.Booking.Config.KafkaConfig;
 import com.upgrad.Booking.dao.BookingDao;
-import com.upgrad.Booking.dto.TransactionDTO;
-import com.upgrad.Booking.entities.BookingInfoEntity;
-import com.upgrad.Booking.exception.RecordNotFoundException;
+import com.upgrad.Booking.exception.BookingNotFoundException;
+import com.upgrad.Booking.exception.InvalidPaymentModeException;
+import com.upgrad.Booking.model.dto.TransactionDTO;
+import com.upgrad.Booking.model.entity.BookingInfoEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -16,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -26,20 +28,31 @@ public class BookingServiceImpl implements BookingService {
     /*
     Reading the Payment Service End Point URL
      */
-    @Value("${paymentServiceEndPointURL}")
+    @Value("${url.service.payment}")
     private String paymentServiceEndPointURL;
 
-    @Value("${topic-name}")
-    private  String topicName;
+    /*
+    Reading the Topic Name from application.properties
+     */
+    @Value("${topic.name}")
+    private String topicName;
 
-    @Autowired
+    /*
+    Reading the room price per day from application.properties
+     */
+    @Value("${room.price.per.day}")
+    private int roomPricePerDay;
+
     RestTemplate restTemplate;
-
-    @Autowired
     BookingDao bookingDao;
+    KafkaConfig kafkaConfig;
 
     @Autowired
-    KafkaConfig kafkaConfig;
+    public BookingServiceImpl(RestTemplate restTemplate, BookingDao bookingDao, KafkaConfig kafkaConfig) {
+        this.restTemplate = restTemplate;
+        this.bookingDao = bookingDao;
+        this.kafkaConfig = kafkaConfig;
+    }
 
     @Override
     public BookingInfoEntity acceptBookingDetails(@NotNull BookingInfoEntity booking) {
@@ -53,7 +66,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         booking.setRoomNumbers(roomNumbs.substring(1));
-        booking.setRoomPrice(1000 * booking.getNumOfRooms() * DAYS.between(booking.getFromDate(), booking.getToDate()));
+        booking.setRoomPrice(roomPricePerDay * booking.getNumOfRooms() * DAYS.between(booking.getFromDate(), booking.getToDate()));
         booking.setBookedOn(LocalDateTime.now());
         return bookingDao.save(booking);
     }
@@ -82,7 +95,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingInfoEntity getBookingDetails(@NotNull int id) {
 
-        return bookingDao.findById(id).orElseThrow(() -> new RecordNotFoundException("Invalid Booking Id"));
+        return bookingDao.findById(id).orElseThrow(() -> new BookingNotFoundException("Invalid Booking Id"));
     }
 
     @Override
@@ -121,16 +134,24 @@ public class BookingServiceImpl implements BookingService {
         return bookingDao.findAll(pageable);
     }
 
-    public BookingInfoEntity makePayment(TransactionDTO transactionDTO) throws RecordNotFoundException {
-
-        BookingInfoEntity fetchBooking = getBookingDetails(transactionDTO.getBookingId());
-        TransactionDTO getTransaction = restTemplate.postForObject(paymentServiceEndPointURL, transactionDTO, TransactionDTO.class);
-        if (getTransaction != null)
-            fetchBooking.setTransactionId(getTransaction.getTransactionId());
-        BookingInfoEntity saveBooking = bookingDao.save(fetchBooking);
-        String message = "Booking confirmed for user with aadhaar number: " + saveBooking.getAadharNumber() + "    |    " + "Here are the booking details:    " + saveBooking.toString();
-        kafkaConfig.publish(topicName, "chat", message);
-        System.out.println("Booking Confirmation Message Posted Successfully to Kafka Topic : " + message);
-        return saveBooking;
+    public BookingInfoEntity makePayment(TransactionDTO transactionDTO) {
+        if (!(transactionDTO.getPaymentMode().trim().equalsIgnoreCase("CARD") | transactionDTO.getPaymentMode().trim().equalsIgnoreCase("UPI"))) {
+            throw new InvalidPaymentModeException("Invalid Mode of Payment");
+        } else {
+            Optional<BookingInfoEntity> fetchBooking = bookingDao.findById(transactionDTO.getBookingId());
+            if (fetchBooking.isPresent()) {
+                BookingInfoEntity bookingInfoEntity = fetchBooking.get();
+                TransactionDTO getTransaction = restTemplate.postForObject(paymentServiceEndPointURL, transactionDTO, TransactionDTO.class);
+                bookingInfoEntity.setTransactionId(getTransaction.getTransactionId());
+                bookingDao.save(bookingInfoEntity);
+                System.out.println(bookingDao.toString());
+                String message = "Booking confirmed for user with aadhaar number: " + bookingInfoEntity.getAadharNumber() + "    |    " + "Here are the booking details:    " + bookingInfoEntity.toString();
+                kafkaConfig.publish(topicName, "chat", message);
+                System.out.println("Booking Confirmation Message Posted Successfully to Kafka Topic : " + message);
+                return bookingInfoEntity;
+            } else {
+                throw new BookingNotFoundException("Invalid Booking Id");
+            }
+        }
     }
 }

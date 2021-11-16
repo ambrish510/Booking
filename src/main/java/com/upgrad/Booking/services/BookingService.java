@@ -1,7 +1,7 @@
 package com.upgrad.Booking.services;
 
 import com.sun.istack.NotNull;
-import com.upgrad.Booking.entities.BookingInfoEntity;
+import com.upgrad.Booking.model.entity.BookingInfoEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

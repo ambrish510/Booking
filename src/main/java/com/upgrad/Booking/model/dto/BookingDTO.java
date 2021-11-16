@@ -1,4 +1,4 @@
-package com.upgrad.Booking.dto;
+package com.upgrad.Booking.model.dto;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,4 +1,4 @@
-package com.upgrad.Booking.entities;
+package com.upgrad.Booking.model.entity;
 
 import lombok.Getter;
 import lombok.Setter;

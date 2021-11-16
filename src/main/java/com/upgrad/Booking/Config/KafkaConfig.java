@@ -12,7 +12,7 @@ public class KafkaConfig {
     /*
     Reading EC2 Public DNS from application.properties file
      */
-    @Value("${instance-public-DNS}")
+    @Value("${url.kafka.server}")
     private String instancePublicDNS;
 
     public void publish(String topic, String key, String value) {
@@ -33,6 +33,9 @@ public class KafkaConfig {
         properties.put("max.in.flight.requests.per.connection", 5);
         properties.put("retry.backoff.ms", 5);
 
+        /*
+        Instantiate the producer Object to post the message to the kafka topic
+         */
         Producer<String, String> producer = new KafkaProducer<>(properties);
         producer.send(new ProducerRecord<>(topic, key, value));
         producer.close();
